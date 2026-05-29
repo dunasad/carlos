@@ -1,1437 +1,506 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Control Calidad"/>
-<meta name="theme-color" content="#45B0BA"/>
-<title>Control de Calidad — Tejilook</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-/* ══════════════════════════════════════════════════════
-   RESET & BASE
-══════════════════════════════════════════════════════ */
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;width:100%}
-body{
-  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-  background:#EEF7F9;
-  overscroll-behavior:none;
-}
-
-/* ══════════════════════════════════════════════════════
-   CSS VARIABLES
-══════════════════════════════════════════════════════ */
-:root{
-  --teal:#45B0BA;
-  --teal-d:#2C8A9A;
-  --teal-dd:#1E6B78;
-  --gold:#FFD166;
-  --gold-d:#F5A623;
-  --green:#06D6A0;
-  --green-d:#0AA87C;
-  --red:#EF476F;
-  --purple:#9B59B6;
-  --orange:#FF8C42;
-  --bg:#EEF7F9;
-  --card:#fff;
-  --border:#DFF0F3;
-  --text:#1C2E35;
-  --muted:#607D8B;
-  --subtle:#90A4AE;
-  --r:16px;
-  --shadow:0 2px 14px rgba(0,0,0,.07);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-}
-
-/* ══════════════════════════════════════════════════════
-   PANTALLAS COMPLETAS (Config / Login)
-══════════════════════════════════════════════════════ */
-.full-screen{
-  position:fixed;inset:0;
-  background:linear-gradient(155deg,#45B0BA 0%,#2C8A9A 45%,#1A5F6B 100%);
-  display:flex;align-items:center;justify-content:center;
-  padding:20px;z-index:900;
-  font-family:inherit;
-}
-.full-screen.hidden{display:none}
-
-.auth-wrap{width:100%;max-width:400px}
-
-.auth-card{
-  background:#fff;border-radius:24px;padding:28px 26px;
-  box-shadow:0 24px 70px rgba(0,0,0,.28);
-}
-
-.auth-brand{text-align:center;margin-bottom:28px}
-.auth-logo{
-  width:80px;height:80px;background:#fff;border-radius:22px;
-  display:flex;align-items:center;justify-content:center;
-  margin:0 auto 14px;box-shadow:0 8px 28px rgba(0,0,0,.18);font-size:38px;
-}
-.auth-brand h1{color:var(--text);font-size:26px;font-weight:900}
-.auth-brand p{color:var(--subtle);font-size:13px;margin-top:5px}
-
-.cfg-title{text-align:center;margin-bottom:22px}
-.cfg-title span{font-size:48px;display:block;margin-bottom:8px}
-.cfg-title h2{color:var(--text);font-size:21px;font-weight:800}
-.cfg-title p{color:var(--subtle);font-size:13px;margin-top:4px}
-
-/* ══════════════════════════════════════════════════════
-   FORM ELEMENTS
-══════════════════════════════════════════════════════ */
-.lbl{
-  display:block;font-size:10.5px;font-weight:700;color:var(--muted);
-  margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px;
-}
-.lbl+*{margin-top:0}
-.mt{margin-top:12px}
-.mt8{margin-top:8px}
-
-.inp{
-  width:100%;padding:13px 15px;
-  border:2px solid var(--border);border-radius:13px;
-  font-size:16px;outline:none;background:#fff;color:var(--text);
-  font-family:inherit;transition:border-color .2s;
-  -webkit-appearance:none;appearance:none;
-}
-.inp:focus{border-color:var(--teal)}
-.inp::placeholder{color:#B0BEC5}
-
-select.inp{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2390A4AE' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center;
-  padding-right:38px;cursor:pointer;
-}
-textarea.inp{resize:none;line-height:1.5}
-
-.inp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-/* ══════════════════════════════════════════════════════
-   BUTTONS
-══════════════════════════════════════════════════════ */
-.btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:14px 20px;border:none;border-radius:13px;font-size:16px;
-  font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s,transform .1s;
-  -webkit-tap-highlight-color:transparent;
-}
-.btn:active{transform:scale(.97)}
-.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
-.btn-block{width:100%}
-
-.btn-primary{
-  background:linear-gradient(135deg,var(--teal),var(--teal-d));
-  color:#fff;box-shadow:0 4px 14px rgba(69,176,186,.4);
-}
-.btn-green{
-  background:linear-gradient(135deg,var(--green),var(--green-d));
-  box-shadow:0 4px 14px rgba(6,214,160,.4);
-}
-.btn-sm{padding:11px 16px;font-size:14px;border-radius:11px}
-.btn-ghost{
-  background:#F0F5F6;color:var(--muted);
-  border:none;border-radius:11px;padding:11px 14px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  -webkit-tap-highlight-color:transparent;
-}
-.btn-del{
-  background:#FDECEA;border:none;border-radius:9px;padding:8px;
-  cursor:pointer;color:#E74C3C;display:flex;align-items:center;flex-shrink:0;
-  -webkit-tap-highlight-color:transparent;
-}
-.btn-link{
-  background:none;border:none;color:rgba(255,255,255,.55);
-  font-size:12px;cursor:pointer;font-family:inherit;margin-top:12px;
-  display:block;width:100%;text-align:center;padding:6px;
-}
-
-/* ══════════════════════════════════════════════════════
-   ALERTS
-══════════════════════════════════════════════════════ */
-.alert-err{
-  margin-top:10px;padding:10px 14px;background:#FDECEA;
-  border-radius:10px;color:#C0392B;font-size:13px;line-height:1.4;
-}
-.alert-ok{
-  padding:13px 16px;border-radius:14px;margin-bottom:12px;
-  background:linear-gradient(90deg,#E3FBF2,#D0F7EA);
-  border:2px solid var(--green);
-  display:flex;align-items:center;gap:12px;
-}
-.alert-ok .ico{font-size:22px}
-.alert-ok .msg-t{font-weight:700;color:#0A8A5E;font-size:14px}
-.alert-ok .msg-s{font-size:12px;color:#0A8A5E}
-
-.alert-login{
-  margin-top:10px;padding:10px 14px;background:#FDECEA;
-  border-radius:10px;color:#C0392B;font-size:13px;
-}
-
-/* ══════════════════════════════════════════════════════
-   MAIN APP LAYOUT
-══════════════════════════════════════════════════════ */
-#screenApp{
-  display:flex;flex-direction:column;
-  min-height:100dvh;min-height:100vh;
-  max-width:480px;margin:0 auto;
-  position:relative;
-}
-#screenApp.hidden{display:none}
-
-/* Header */
-.app-header{
-  background:linear-gradient(135deg,var(--teal),var(--teal-dd));
-  padding:14px 18px;
-  display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 3px 16px rgba(0,0,0,.2);
-  position:sticky;top:0;z-index:40;flex-shrink:0;
-}
-.app-header-left{display:flex;align-items:center;gap:10}
-.app-header-icon{font-size:26px;line-height:1}
-.app-header-title{color:#fff;font-weight:900;font-size:17px;line-height:1.1}
-.app-header-sub{color:rgba(255,255,255,.72);font-size:11px}
-.app-header .btn-salir{
-  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
-  color:#fff;padding:7px 14px;border-radius:20px;cursor:pointer;
-  font-size:12px;font-weight:700;font-family:inherit;white-space:nowrap;
-}
-
-/* Content scroll */
-.app-content{
-  flex:1;overflow-y:auto;overflow-x:hidden;
-  padding:14px 14px 100px;
-  -webkit-overflow-scrolling:touch;
-}
-
-/* ══════════════════════════════════════════════════════
-   BOTTOM NAV
-══════════════════════════════════════════════════════ */
-.bottom-nav{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  width:100%;max-width:480px;
-  background:#fff;border-top:1px solid var(--border);
-  display:flex;z-index:50;
-  box-shadow:0 -4px 20px rgba(0,0,0,.09);
-  padding-bottom:var(--safe-bottom);
-}
-.nav-btn{
-  flex:1;padding:10px 0 12px;background:none;border:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  font-size:10px;font-weight:600;letter-spacing:.2px;
-  color:var(--subtle);transition:color .2s;
-  position:relative;font-family:inherit;
-}
-.nav-btn svg{width:22px;height:22px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.nav-btn.active{color:var(--teal)}
-.nav-indicator{
-  position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:28px;height:3px;background:var(--teal);border-radius:0 0 3px 3px;
-  opacity:0;transition:opacity .2s;
-}
-.nav-btn.active .nav-indicator{opacity:1}
-
-/* ══════════════════════════════════════════════════════
-   FAB
-══════════════════════════════════════════════════════ */
-.fab{
-  position:fixed;
-  bottom:calc(68px + var(--safe-bottom));
-  right:max(18px, calc(50vw - 222px));
-  width:58px;height:58px;border-radius:29px;
-  background:linear-gradient(135deg,var(--teal),var(--teal-dd));
-  border:none;color:#fff;cursor:pointer;
-  box-shadow:0 6px 22px rgba(69,176,186,.55);
-  display:flex;align-items:center;justify-content:center;
-  z-index:45;transition:transform .15s,box-shadow .15s;
-}
-.fab:active{transform:scale(.91);box-shadow:0 3px 12px rgba(69,176,186,.4)}
-.fab svg{width:28px;height:28px;stroke-width:2.5;stroke-linecap:round}
-
-/* ══════════════════════════════════════════════════════
-   CARDS
-══════════════════════════════════════════════════════ */
-.card{
-  background:var(--card);border-radius:var(--r);padding:16px;
-  box-shadow:var(--shadow);margin-bottom:12px;
-}
-.card-title{font-weight:800;color:var(--text);font-size:15px;margin-bottom:12px}
-.card-title-row{
-  display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
-}
-.badge-count{
-  background:var(--teal);color:#fff;border-radius:20px;
-  padding:2px 10px;font-size:12px;font-weight:700;
-}
-
-/* ══════════════════════════════════════════════════════
-   ITEM ROWS
-══════════════════════════════════════════════════════ */
-.item-row{
-  border-radius:13px;background:#F6FBFC;border:1px solid #E3EFF2;
-  padding:12px 14px;margin-bottom:8px;
-  display:flex;align-items:center;gap:10;
-}
-.item-row:last-child{margin-bottom:0}
-.item-info{flex:1;min-width:0}
-.item-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
-.badge{
-  padding:2px 8px;border-radius:7px;
-  font-size:11px;font-weight:700;white-space:nowrap;
-}
-.item-desc{font-size:12px;color:var(--subtle);margin-bottom:3px}
-.item-meta{font-size:12px;color:var(--muted)}
-.item-right{text-align:right;flex-shrink:0;margin-right:6px}
-.item-total{font-weight:900;color:var(--teal);font-size:22px;line-height:1}
-.item-unit{font-size:10px;color:var(--subtle)}
-
-/* ══════════════════════════════════════════════════════
-   EMPTY STATE
-══════════════════════════════════════════════════════ */
-.empty{text-align:center;padding:34px 16px;color:var(--subtle)}
-.empty-ico{font-size:44px;margin-bottom:10px;opacity:.4;display:block}
-.empty-txt{font-size:14px;line-height:1.55;color:var(--muted)}
-.empty-txt strong{color:var(--teal)}
-
-/* ══════════════════════════════════════════════════════
-   TOTALS SECTION
-══════════════════════════════════════════════════════ */
-.totals-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.total-card{border-radius:14px;padding:16px 14px;text-align:center}
-.total-card.c-teal{
-  background:linear-gradient(135deg,var(--teal),var(--teal-d));
-  box-shadow:0 4px 16px rgba(69,176,186,.4);
-}
-.total-card.c-gold{
-  background:linear-gradient(135deg,var(--gold),var(--gold-d));
-  box-shadow:0 4px 16px rgba(245,166,35,.35);
-}
-.total-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
-.c-teal .total-lbl{color:rgba(255,255,255,.82)}
-.c-gold .total-lbl{color:rgba(0,0,0,.55)}
-.total-val{font-size:40px;font-weight:900;line-height:1.05}
-.c-teal .total-val{color:#fff}
-.c-gold .total-val{color:var(--text)}
-
-/* ══════════════════════════════════════════════════════
-   PREVIEW PILL
-══════════════════════════════════════════════════════ */
-.preview-pill{
-  display:none;margin-top:10px;padding:10px 14px;
-  background:linear-gradient(90deg,#E8F6FF,#EEF9FA);
-  border-radius:12px;font-size:14px;color:#1A6EA8;
-  border:1px solid #C5DFF5;
-}
-.preview-pill.show{display:block}
-
-/* ══════════════════════════════════════════════════════
-   NEW CAT/TIPO ROW
-══════════════════════════════════════════════════════ */
-.new-row{display:flex;gap:8px;margin-top:8px;align-items:stretch}
-.new-row .inp{flex:1}
-
-/* ══════════════════════════════════════════════════════
-   DASHBOARD
-══════════════════════════════════════════════════════ */
-.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.stat-card{border-radius:16px;padding:16px 14px;text-align:center}
-.stat-card .s-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;opacity:.82;margin-bottom:3px}
-.stat-card .s-val{font-size:32px;font-weight:900}
-.stat-card.c1{background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#fff;box-shadow:0 4px 14px rgba(69,176,186,.35)}
-.stat-card.c2{background:linear-gradient(135deg,var(--gold),var(--gold-d));box-shadow:0 4px 14px rgba(245,166,35,.3)}
-.stat-card.c2 .s-lbl,.stat-card.c2 .s-val{color:var(--text)}
-
-.stat-top{
-  background:linear-gradient(135deg,var(--purple),#7D3C98);
-  border-radius:16px;padding:14px 18px;margin-bottom:12px;
-  display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 4px 14px rgba(155,89,182,.3);
-}
-.stat-top .s-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.82)}
-.stat-top .s-name{color:#fff;font-size:18px;font-weight:900;line-height:1.1}
-.stat-top .s-pzas{color:rgba(255,255,255,.82);font-size:13px;margin-top:2px}
-
-.chart-box{border-radius:var(--r);background:#fff;padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
-.chart-box-title{font-weight:800;color:var(--text);font-size:14px;margin-bottom:12px}
-.chart-canvas-wrap{position:relative;height:190px}
-.chart-canvas-wrap.sm{height:170px}
-
-.legend-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.leg-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text)}
-.leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-
-/* ══════════════════════════════════════════════════════
-   LOADING DOTS
-══════════════════════════════════════════════════════ */
-.loading{display:flex;justify-content:center;align-items:center;gap:7px;padding:36px 0}
-.loading span{
-  width:10px;height:10px;background:var(--teal);border-radius:50%;
-  animation:bounce .7s infinite alternate;
-}
-.loading span:nth-child(2){animation-delay:.15s}
-.loading span:nth-child(3){animation-delay:.3s}
-@keyframes bounce{to{transform:translateY(-8px);opacity:.38}}
-
-/* ══════════════════════════════════════════════════════
-   BOTTOM SHEET
-══════════════════════════════════════════════════════ */
-.sheet-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:60;
-  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-  opacity:0;pointer-events:none;transition:opacity .25s;
-}
-.sheet-overlay.active{opacity:1;pointer-events:auto}
-
-.sheet{
-  position:fixed;bottom:0;left:50%;
-  transform:translateX(-50%) translateY(102%);
-  width:100%;max-width:480px;
-  background:#fff;border-radius:22px 22px 0 0;
-  z-index:70;max-height:93dvh;max-height:93vh;
-  display:flex;flex-direction:column;
-  box-shadow:0 -8px 40px rgba(0,0,0,.22);
-  transition:transform .32s cubic-bezier(.32,1.15,.6,1);
-}
-.sheet.open{transform:translateX(-50%) translateY(0)}
-
-.sheet-drag{
-  width:38px;height:4px;background:#DDE5E8;border-radius:2px;
-  margin:13px auto 4px;
-}
-.sheet-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:4px 18px 12px;
-}
-.sheet-title{font-weight:800;color:var(--text);font-size:16px}
-.sheet-body{
-  overflow-y:auto;padding:0 18px 36px;flex:1;
-  -webkit-overflow-scrolling:touch;
-}
-
-/* ══════════════════════════════════════════════════════
-   UTILITIES
-══════════════════════════════════════════════════════ */
-.hidden{display:none!important}
-.flex-row{display:flex;align-items:center;gap:8px}
-
-/* ══════════════════════════════════════════════════════
-   OBSCARD + NOTES
-══════════════════════════════════════════════════════ */
-.obs-note{
-  font-size:11px;color:var(--subtle);margin-top:5px;line-height:1.4;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quality Tracker - Preciado</title>
+    <!-- Tailwind CSS para estilos rápidos y móviles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js para el Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f3f4f6; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        input, select, textarea { font-size: 16px !important; /* Evita zoom en iOS */ }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Loader */
+        .loader { border-top-color: #3b82f6; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body>
+<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
 
-<!-- ══════════════════════════════════════════════════
-     PANTALLA: CONFIGURACIÓN
-══════════════════════════════════════════════════ -->
-<div class="full-screen" id="screenConfig">
-  <div class="auth-wrap">
-    <div class="auth-card">
-      <div class="cfg-title">
-        <span>⚙️</span>
-        <h2>Configuración Inicial</h2>
-        <p>Conecta tu base de datos Supabase</p>
-      </div>
-
-      <label class="lbl">URL del Proyecto Supabase</label>
-      <input class="inp" id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co"/>
-
-      <label class="lbl mt">Anon Public Key</label>
-      <textarea class="inp mt" id="cfgKey" rows="3" placeholder="eyJhbGci..." style="font-size:12px;resize:none"></textarea>
-
-      <button class="btn btn-primary btn-block" onclick="saveConfig()" style="margin-top:20px;padding:15px">
-        🔗 Conectar y Continuar
-      </button>
-      <p style="text-align:center;font-size:11px;color:#B0BEC5;margin-top:10px">
-        Los datos se guardan solo en este dispositivo
-      </p>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     PANTALLA: LOGIN
-══════════════════════════════════════════════════ -->
-<div class="full-screen hidden" id="screenLogin">
-  <div class="auth-wrap">
-    <div class="auth-brand">
-      <div class="auth-logo">✅</div>
-      <h1>Control de Calidad</h1>
-      <p>Área de Revisado · Tejilook</p>
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-blue-600 flex items-center justify-center p-4 fade-in">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-shirt text-5xl text-blue-600 mb-3"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Quality Control</h1>
+                <p class="text-gray-500 text-sm">Área de Calidad - Preciado</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                    <input type="text" id="username" value="Preciado" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg mt-2">
+                    Iniciar Sesión
+                </button>
+                <p id="login-error" class="text-red-500 text-sm text-center hidden mt-2"></p>            </form>
+        </div>
     </div>
 
-    <div class="auth-card">
-      <label class="lbl">Usuario</label>
-      <input class="inp" id="loginUser" value="Preciado" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <!-- APP PRINCIPAL (Oculta hasta login) -->
+    <div id="app-container" class="hidden flex-col h-full max-w-md mx-auto w-full bg-gray-50 shadow-2xl relative">
+        
+        <!-- Header -->
+        <header class="bg-white p-4 shadow-sm flex justify-between items-center z-10">
+            <h2 class="font-bold text-lg text-blue-800"><i class="fa-solid fa-clipboard-check mr-2"></i>Registro Diario</h2>
+            <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-right-from-bracket text-xl"></i></button>
+        </header>
 
-      <label class="lbl mt">Contraseña</label>
-      <input class="inp mt" id="loginPass" type="password" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password"/>
+        <!-- Contenido Scrollable -->
+        <main class="flex-1 overflow-y-auto p-4 pb-24 space-y-4" id="main-content">
+            <!-- Las vistas se inyectan aquí vía JS -->
+        </main>
 
-      <div class="alert-login hidden" id="loginErr"></div>
-
-      <button class="btn btn-primary btn-block" id="loginBtn" onclick="doLogin()" style="margin-top:18px;padding:15px">
-        Iniciar Sesión
-      </button>
-    </div>
-    <button class="btn-link" onclick="resetConfig()">⚙ Cambiar configuración</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     PANTALLA: APP PRINCIPAL
-══════════════════════════════════════════════════ -->
-<div id="screenApp" class="hidden">
-
-  <!-- Header -->
-  <div class="app-header">
-    <div class="app-header-left">
-      <span class="app-header-icon">✅</span>
-      <div>
-        <div class="app-header-title">Control de Calidad</div>
-        <div class="app-header-sub">Área de Revisado · 👤 <span id="headerUser"></span></div>
-      </div>
-    </div>
-    <button class="app-header btn-salir" onclick="doLogout()">Salir</button>
-  </div>
-
-  <!-- Contenido scrolleable -->
-  <div class="app-content" id="appContent">
-
-    <!-- ────────────── TAB: REGISTRO ────────────── -->
-    <div id="tabReg">
-
-      <!-- Banner éxito -->
-      <div class="alert-ok hidden" id="savedBanner">
-        <span class="ico">🎉</span>
-        <div>
-          <div class="msg-t">¡Registro guardado correctamente!</div>
-          <div class="msg-s">Ya está almacenado en la base de datos.</div>
-        </div>
-      </div>
-
-      <!-- Fecha -->
-      <div class="card">
-        <label class="lbl">📅 Fecha del Registro</label>
-        <input class="inp mt" type="date" id="regFecha"/>
-      </div>
-
-      <!-- Lista de ítems -->
-      <div class="card" id="itemsCard">
-        <div class="card-title-row">
-          <span class="card-title" style="margin-bottom:0">📋 Prendas del Día</span>
-          <span class="badge-count" id="itemsCount">0</span>
-        </div>
-        <!-- Vacío -->
-        <div class="empty" id="itemsEmpty">
-          <span class="empty-ico">📦</span>
-          <div class="empty-txt">
-            Toca el botón <strong>+</strong> para agregar<br>prendas al registro del día
-          </div>
-        </div>
-        <!-- Lista dinámica -->
-        <div id="itemsList"></div>
-      </div>
-
-      <!-- Observación -->
-      <div class="card hidden" id="obsCard">
-        <label class="lbl">📝 Observación del Día</label>
-        <textarea class="inp mt" id="regObs" rows="3"
-          placeholder="Ej: Reunión de equipo, inicio tardío, actividad que redujo el avance..."></textarea>
-        <p class="obs-note">Escribe cualquier situación que haya afectado tu ritmo de revisado hoy.</p>
-      </div>
-
-      <!-- Totales y Guardar -->
-      <div class="card hidden" id="totalesCard">
-        <div class="totals-grid">
-          <div class="total-card c-teal">
-            <div class="total-lbl">Total Piezas</div>
-            <div class="total-val" id="totalPz">0</div>
-          </div>
-          <div class="total-card c-gold">
-            <div class="total-lbl">Suéteres ÷ 4</div>
-            <div class="total-val" id="totalSw">0</div>
-          </div>
-        </div>
-        <button class="btn btn-green btn-block" id="saveBtn" onclick="doSave()" style="padding:15px">
-          💾 Guardar Registro del Día
-        </button>
-      </div>
-
-    </div><!-- fin tabReg -->
-
-    <!-- ────────────── TAB: DASHBOARD ────────────── -->
-    <div id="tabDash" class="hidden">
-
-      <!-- Filtros -->
-      <div class="card">
-        <div class="card-title">📊 Dashboard</div>
-        <div class="filter-row">
-          <div>
-            <label class="lbl">Vista</label>
-            <select class="inp mt" id="dashMode" onchange="onDashFilterChange()">
-              <option value="mes">Por Mes</option>
-              <option value="year">Año Completo</option>
-            </select>
-          </div>
-          <div>
-            <label class="lbl">Año</label>
-            <select class="inp mt" id="dashYear" onchange="onDashFilterChange()">
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-            </select>
-          </div>
-        </div>
-        <div class="mt" id="dashMonthRow">
-          <label class="lbl">Mes</label>
-          <select class="inp mt" id="dashMonth" onchange="onDashFilterChange()">
-            <option value="1">Enero</option><option value="2">Febrero</option>
-            <option value="3">Marzo</option><option value="4">Abril</option>
-            <option value="5">Mayo</option><option value="6">Junio</option>
-            <option value="7">Julio</option><option value="8">Agosto</option>
-            <option value="9">Septiembre</option><option value="10">Octubre</option>
-            <option value="11">Noviembre</option><option value="12">Diciembre</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div class="loading hidden" id="dashLoading">
-        <span></span><span></span><span></span>
-      </div>
-
-      <!-- Sin datos -->
-      <div class="card hidden empty" id="dashEmpty">
-        <span class="empty-ico">📊</span>
-        <div class="empty-txt">Sin registros para este período.<br>Agrega tu primer registro del día.</div>
-      </div>
-
-      <!-- Estadísticas -->
-      <div id="dashStats" class="hidden">
-        <!-- Tarjetas numéricas -->
-        <div class="stat-grid">
-          <div class="stat-card c1">
-            <div class="s-lbl">Total Piezas</div>
-            <div class="s-val" id="dTotalPz">—</div>
-          </div>
-          <div class="stat-card c2">
-            <div class="s-lbl">Suéteres</div>
-            <div class="s-val" id="dTotalSw">—</div>
-          </div>
-        </div>
-        <div class="stat-top">
-          <div>
-            <div class="s-lbl">🏆 Top Categoría</div>
-            <div class="s-name" id="dTopCat">—</div>
-          </div>
-          <div class="s-pzas" id="dTopPz"></div>
-        </div>
-
-        <!-- Gráfica por Categoría -->
-        <div class="chart-box">
-          <div class="chart-box-title">Por Categoría</div>
-          <div class="chart-canvas-wrap">
-            <canvas id="chartCat"></canvas>
-          </div>
-          <div class="legend-row" id="legendCat"></div>
-        </div>
-
-        <!-- Gráfica por Tipo -->
-        <div class="chart-box">
-          <div class="chart-box-title">Por Tipo de Prenda</div>
-          <div class="chart-canvas-wrap sm">
-            <canvas id="chartTipo"></canvas>
-          </div>
-        </div>
-
-        <!-- Gráfica Mensual (solo modo año) -->
-        <div class="chart-box hidden" id="chartMesBox">
-          <div class="chart-box-title" id="chartMesTitle">Producción Mensual</div>
-          <div class="chart-canvas-wrap">
-            <canvas id="chartMes"></canvas>
-          </div>
-        </div>
-
-      </div><!-- fin dashStats -->
-
-    </div><!-- fin tabDash -->
-
-  </div><!-- fin app-content -->
-
-  <!-- FAB -->
-  <button class="fab" id="fabBtn" onclick="openSheet()" aria-label="Agregar prenda">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  </button>
-
-  <!-- Bottom Nav -->
-  <div class="bottom-nav">
-    <button class="nav-btn active" id="navReg" onclick="setTab('reg')">
-      <div class="nav-indicator"></div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-        <rect x="9" y="3" width="6" height="4" rx="1"/>
-        <path d="m9 12 2 2 4-4"/>
-      </svg>
-      Registro
-    </button>
-    <button class="nav-btn" id="navDash" onclick="setTab('dash')">
-      <div class="nav-indicator"></div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-        <rect x="3" y="14" width="7" height="7"/>
-        <path d="M14 17h7m-3.5-3.5v7"/>
-      </svg>
-      Dashboard
-    </button>
-  </div>
-
-</div><!-- fin screenApp -->
-
-<!-- ══════════════════════════════════════════════════
-     BOTTOM SHEET: AGREGAR PRENDA
-══════════════════════════════════════════════════ -->
-<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
-
-<div class="sheet" id="addSheet">
-  <div class="sheet-drag"></div>
-  <div class="sheet-header">
-    <span class="sheet-title">➕ Agregar Prenda</span>
-    <button class="btn-ghost" onclick="closeSheet()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
-  <div class="sheet-body">
-
-    <!-- Tipo de prenda -->
-    <label class="lbl">Tipo de Prenda</label>
-    <select class="inp mt" id="afTipo" onchange="checkAddTipo(this)"></select>
-    <div class="new-row hidden" id="newTipoRow">
-      <input class="inp" id="newTipoVal" placeholder="Nombre del tipo"
-        onkeydown="if(event.key==='Enter')doAddTipo()"/>
-      <button class="btn btn-primary btn-sm" onclick="doAddTipo()">✓</button>
-      <button class="btn-ghost" onclick="cancelNewTipo()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
+        <!-- Bottom Navigation -->
+        <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full max-w-md flex justify-around py-3 z-20 safe-area-pb">
+            <button onclick="showView('register')" class="nav-btn flex flex-col items-center text-blue-600" data-view="register">
+                <i class="fa-solid fa-plus-circle text-2xl mb-1"></i>
+                <span class="text-xs font-medium">Registrar</span>
+            </button>
+            <button onclick="showView('dashboard')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-blue-600" data-view="dashboard">
+                <i class="fa-solid fa-chart-pie text-2xl mb-1"></i>
+                <span class="text-xs font-medium">Dashboard</span>
+            </button>
+        </nav>
     </div>
 
-    <!-- Descripción -->
-    <label class="lbl mt">Descripción (opcional)</label>
-    <input class="inp mt" id="afDesc" placeholder="ej. Grinch rojo, liso, rayas..."/>
-
-    <!-- Talla -->
-    <label class="lbl mt">Talla</label>
-    <select class="inp mt" id="afTalla">
-      <option>XS</option><option>S</option><option selected>M</option>
-      <option>L</option><option>XL</option><option>XXL</option><option>Única</option>
-    </select>
-
-    <!-- Categoría -->
-    <label class="lbl mt">Categoría</label>
-    <select class="inp mt" id="afCat" onchange="checkAddCat(this)"></select>
-    <div class="new-row hidden" id="newCatRow">
-      <input class="inp" id="newCatVal" placeholder="Nombre de la categoría"
-        onkeydown="if(event.key==='Enter')doAddCat()"/>
-      <button class="btn btn-primary btn-sm" onclick="doAddCat()">✓</button>
-      <button class="btn-ghost" onclick="cancelNewCat()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Paquetes y piezas -->
-    <div class="inp-row mt">
-      <div>
-        <label class="lbl">Paquetes</label>
-        <input class="inp mt" type="number" min="1" id="afPaq"
-          placeholder="0" inputmode="numeric" oninput="updatePreview()"/>
-      </div>
-      <div>
-        <label class="lbl">Pzas / Paquete</label>
-        <input class="inp mt" type="number" min="1" id="afPpp"
-          placeholder="0" inputmode="numeric" oninput="updatePreview()"/>
-      </div>
-    </div>
-
-    <!-- Preview -->
-    <div class="preview-pill" id="afPreview">
-      📦 <strong id="afPreviewTxt"></strong>
-    </div>
-
-    <!-- Error -->
-    <div class="alert-err hidden" id="afErr"></div>
-
-    <!-- Botón agregar -->
-    <button class="btn btn-primary btn-block" onclick="doAddItem()" style="margin-top:18px;padding:15px;font-size:16px">
-      + Agregar a la lista
-    </button>
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     JAVASCRIPT
-══════════════════════════════════════════════════ -->
-<script>
-/* ─── Constantes ─────────────────────────────────── */
-const DEFAULT_CATS  = ['Dama','Caballero','Teens','Juvenil','Chavos','Niña','Niño','Bebe'];
-const DEFAULT_TIPOS = ['Frentes','Espaldas','Mangas'];
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const CAT_COLORS  = ['#FF6B9D','#45B0BA','#FF8C42','#9B59B6','#E74C3C','#FF69B4','#4E9AF1','#F39C12','#1ABC9C','#3498DB'];
-const TIPO_COLORS = ['#06D6A0','#FFD166','#EF476F','#45B0BA','#9B59B6'];
-
-/* ─── Estado ─────────────────────────────────────── */
-let SB_URL = '', SB_KEY = '';
-let currentUser = null;
-let cats  = [...DEFAULT_CATS];
-let tipos = [...DEFAULT_TIPOS];
-let items = [];
-let dashData = [];
-let chartInstances = {};
-
-/* ─── Supabase REST ──────────────────────────────── */
-async function sbq(path, method = 'GET', body = null) {
-  const headers = {
-    'apikey': SB_KEY,
-    'Authorization': 'Bearer ' + SB_KEY,
-    'Content-Type': 'application/json'
-  };
-  if (method !== 'GET') headers['Prefer'] = 'return=representation';
-  const opts = { method, headers };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(SB_URL + '/rest/v1/' + path, opts);
-  const text = await res.text();
-  if (!res.ok) throw new Error(text || res.statusText);
-  return text ? JSON.parse(text) : [];
-}
-
-/* ─── Inicialización ─────────────────────────────── */
-function init() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('cq_v2_cfg'));
-    if (saved && saved.url && saved.key && saved.url.startsWith('https://') && saved.key.length > 30) {
-      SB_URL = saved.url;
-      SB_KEY = saved.key;
-      showScreen('screenLogin');
-      return;
-    }
-  } catch(e) {}
-  showScreen('screenConfig');
-}
-
-function showScreen(id) {
-  ['screenConfig','screenLogin','screenApp'].forEach(s => {
-    const el = document.getElementById(s);
-    if (!el) return;
-    if (s === id) {
-      el.classList.remove('hidden');
-      el.style.display = (s === 'screenApp') ? 'flex' : 'flex';
-    } else {
-      el.classList.add('hidden');
-    }
-  });
-}
-
-/* ─── Config ─────────────────────────────────────── */
-function saveConfig() {
-  const url = document.getElementById('cfgUrl').value.trim();
-  const key = document.getElementById('cfgKey').value.trim();
-  if (!url.startsWith('https://') || key.length < 30) {
-    alert('Por favor ingresa una URL válida de Supabase y la Anon Key completa.');
-    return;
-  }
-  SB_URL = url; SB_KEY = key;
-  localStorage.setItem('cq_v2_cfg', JSON.stringify({ url, key }));
-  showScreen('screenLogin');
-}
-
-function resetConfig() {
-  localStorage.removeItem('cq_v2_cfg');
-  SB_URL = ''; SB_KEY = '';
-  showScreen('screenConfig');
-}
-
-/* ─── Login ──────────────────────────────────────── */
-async function doLogin() {
-  const u   = document.getElementById('loginUser').value.trim();
-  const p   = document.getElementById('loginPass').value;
-  const err = document.getElementById('loginErr');
-  const btn = document.getElementById('loginBtn');
-
-  err.classList.add('hidden');
-  btn.textContent = '⏳ Verificando...';
-  btn.disabled = true;
-
-  try {
-    const data = await sbq(
-      'usuarios?username=eq.' + encodeURIComponent(u) +
-      '&password=eq.' + encodeURIComponent(p) +
-      '&limit=1'
-    );
-    if (data && data.length > 0) {
-      currentUser = data[0];
-      document.getElementById('headerUser').textContent = currentUser.username;
-      showScreen('screenApp');
-      await initApp();
-    } else {
-      err.textContent = 'Usuario o contraseña incorrectos.';
-      err.classList.remove('hidden');
-    }
-  } catch(e) {
-    err.textContent = 'Error de conexión: ' + e.message;
-    err.classList.remove('hidden');
-  }
-  btn.textContent = 'Iniciar Sesión';
-  btn.disabled = false;
-}
-
-function doLogout() {
-  currentUser = null;
-  items = [];
-  dashData = [];
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginErr').classList.add('hidden');
-  destroyCharts();
-  showScreen('screenLogin');
-}
-
-/* ─── Inicializar App ────────────────────────────── */
-async function initApp() {
-  // Fecha de hoy
-  document.getElementById('regFecha').value = getTodayStr();
-
-  // Mes y año actual en dashboard
-  const now = new Date();
-  document.getElementById('dashMonth').value = now.getMonth() + 1;
-  document.getElementById('dashYear').value  = now.getFullYear();
-
-  // Cargar categorías y tipos desde Supabase
-  try {
-    const c = await sbq('categorias?activo=eq.true&order=nombre.asc&select=nombre');
-    if (c && c.length) cats = c.map(x => x.nombre);
-  } catch(e) { console.warn('No se cargaron categorías, usando defaults:', e.message); }
-
-  try {
-    const t = await sbq('tipos_prenda?activo=eq.true&order=nombre.asc&select=nombre');
-    if (t && t.length) tipos = t.map(x => x.nombre);
-  } catch(e) { console.warn('No se cargaron tipos, usando defaults:', e.message); }
-
-  fillSheetSelects();
-  renderItems();
-  setTab('reg');
-}
-
-function getTodayStr() {
-  return new Date().toISOString().split('T')[0];
-}
-
-/* ─── Selects del Sheet ──────────────────────────── */
-function fillSheetSelects() {
-  const catSel  = document.getElementById('afCat');
-  const tipoSel = document.getElementById('afTipo');
-  const prevCat  = catSel.value;
-  const prevTipo = tipoSel.value;
-
-  catSel.innerHTML = cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('') +
-    '<option value="__add_cat__">➕ Nueva categoría...</option>';
-
-  tipoSel.innerHTML = tipos.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('') +
-    '<option value="__add_tipo__">➕ Nuevo tipo de prenda...</option>';
-
-  if (cats.includes(prevCat))  catSel.value  = prevCat;
-  if (tipos.includes(prevTipo)) tipoSel.value = prevTipo;
-}
-
-function esc(str) {
-  return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function checkAddCat(sel) {
-  if (sel.value === '__add_cat__') {
-    sel.value = cats[0] || '';
-    document.getElementById('newCatRow').classList.remove('hidden');
-    document.getElementById('newCatVal').focus();
-  }
-}
-
-function checkAddTipo(sel) {
-  if (sel.value === '__add_tipo__') {
-    sel.value = tipos[0] || '';
-    document.getElementById('newTipoRow').classList.remove('hidden');
-    document.getElementById('newTipoVal').focus();
-  }
-}
-
-function cancelNewCat() {
-  document.getElementById('newCatRow').classList.add('hidden');
-  document.getElementById('newCatVal').value = '';
-}
-
-function cancelNewTipo() {
-  document.getElementById('newTipoRow').classList.add('hidden');
-  document.getElementById('newTipoVal').value = '';
-}
-
-async function doAddCat() {
-  const nombre = document.getElementById('newCatVal').value.trim();
-  if (!nombre) return;
-  try {
-    await sbq('categorias', 'POST', { nombre, activo: true });
-  } catch(e) {
-    if (!e.message.includes('duplicate') && !e.message.includes('unique') && !e.message.includes('23505')) {
-      alert('Error al guardar: ' + e.message); return;
-    }
-  }
-  if (!cats.includes(nombre)) cats.push(nombre);
-  fillSheetSelects();
-  document.getElementById('afCat').value = nombre;
-  cancelNewCat();
-}
-
-async function doAddTipo() {
-  const nombre = document.getElementById('newTipoVal').value.trim();
-  if (!nombre) return;
-  try {
-    await sbq('tipos_prenda', 'POST', { nombre, activo: true });
-  } catch(e) {
-    if (!e.message.includes('duplicate') && !e.message.includes('unique') && !e.message.includes('23505')) {
-      alert('Error al guardar: ' + e.message); return;
-    }
-  }
-  if (!tipos.includes(nombre)) tipos.push(nombre);
-  fillSheetSelects();
-  document.getElementById('afTipo').value = nombre;
-  cancelNewTipo();
-}
-
-/* ─── Preview de cálculo ─────────────────────────── */
-function updatePreview() {
-  const paq = parseFloat(document.getElementById('afPaq').value);
-  const ppp = parseFloat(document.getElementById('afPpp').value);
-  const pill = document.getElementById('afPreview');
-  if (paq > 0 && ppp > 0) {
-    document.getElementById('afPreviewTxt').textContent =
-      paq + ' paquetes × ' + ppp + ' pzas/paq = ' + (paq * ppp) + ' piezas';
-    pill.classList.add('show');
-  } else {
-    pill.classList.remove('show');
-  }
-}
-
-/* ─── Agregar ítem ───────────────────────────────── */
-function doAddItem() {
-  const tipo  = document.getElementById('afTipo').value;
-  const desc  = document.getElementById('afDesc').value.trim();
-  const talla = document.getElementById('afTalla').value;
-  const cat   = document.getElementById('afCat').value;
-  const paq   = parseFloat(document.getElementById('afPaq').value);
-  const ppp   = parseFloat(document.getElementById('afPpp').value);
-  const errEl = document.getElementById('afErr');
-
-  if (!tipo || !cat || tipo === '__add_tipo__' || cat === '__add_cat__') {
-    errEl.textContent = '⚠ Selecciona un tipo y una categoría válidos.';
-    errEl.classList.remove('hidden'); return;
-  }
-  if (!paq || !ppp || paq <= 0 || ppp <= 0 || isNaN(paq) || isNaN(ppp)) {
-    errEl.textContent = '⚠ Ingresa valores válidos en Paquetes y Pzas/Paquete.';
-    errEl.classList.remove('hidden'); return;
-  }
-
-  errEl.classList.add('hidden');
-
-  items.push({
-    _id: Date.now() + Math.random(),
-    tipo, desc, talla, cat,
-    paq, ppp,
-    total: Math.round(paq * ppp)
-  });
-
-  // Reset form parcial
-  document.getElementById('afPaq').value = '';
-  document.getElementById('afPpp').value = '';
-  document.getElementById('afDesc').value = '';
-  document.getElementById('afPreview').classList.remove('show');
-
-  closeSheet();
-  renderItems();
-}
-
-/* ─── Eliminar ítem ──────────────────────────────── */
-function removeItem(id) {
-  items = items.filter(i => i._id !== id);
-  renderItems();
-}
-
-/* ─── Renderizar lista de ítems ──────────────────── */
-function renderItems() {
-  const list   = document.getElementById('itemsList');
-  const empty  = document.getElementById('itemsEmpty');
-  const count  = document.getElementById('itemsCount');
-  const obsCard   = document.getElementById('obsCard');
-  const totCard   = document.getElementById('totalesCard');
-  const fabBtn    = document.getElementById('fabBtn');
-
-  count.textContent = items.length;
-
-  if (!items.length) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-    obsCard.classList.add('hidden');
-    totCard.classList.add('hidden');
-    return;
-  }
-
-  empty.style.display = 'none';
-  obsCard.classList.remove('hidden');
-  totCard.classList.remove('hidden');
-
-  let totalPz = 0;
-
-  list.innerHTML = items.map(it => {
-    totalPz += it.total;
-    const ci = cats.indexOf(it.cat);
-    const ti = tipos.indexOf(it.tipo);
-    const catClr  = CAT_COLORS[ci >= 0 ? ci % CAT_COLORS.length : 0];
-    const tipoClr = TIPO_COLORS[ti >= 0 ? ti % TIPO_COLORS.length : 0];
-    return `
-    <div class="item-row" style="display:flex;align-items:center;gap:10px">
-      <div class="item-info">
-        <div class="item-badges">
-          <span class="badge" style="background:${tipoClr}22;color:${tipoClr}">${it.tipo}</span>
-          <span class="badge" style="background:${catClr}22;color:${catClr}">${it.cat}</span>
-          <span class="badge" style="background:#F0F5F6;color:var(--muted)">T: ${it.talla}</span>
+    <!-- MODAL AGREGAR CATEGORÍA -->
+    <div id="modal-new-cat" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-xs fade-in">
+            <h3 class="font-bold text-lg mb-4">Nueva Categoría</h3>
+            <input type="text" id="new-cat-name" placeholder="Ej. Bebe Recién Nacido" class="w-full border p-3 rounded-lg mb-4 text-base">
+            <div class="flex gap-2">
+                <button onclick="closeModal()" class="flex-1 py-2 text-gray-600 bg-gray-100 rounded-lg">Cancelar</button>
+                <button onclick="saveNewCategory()" class="flex-1 py-2 text-white bg-blue-600 rounded-lg">Guardar</button>
+            </div>
         </div>
-        ${it.desc ? `<div class="item-desc">${it.desc}</div>` : ''}
-        <div class="item-meta">${it.paq} paq × ${it.ppp} pzas/paq</div>
-      </div>
-      <div class="item-right">
-        <div class="item-total">${it.total.toLocaleString()}</div>
-        <div class="item-unit">piezas</div>
-      </div>
-      <button class="btn-del" onclick="removeItem(${it._id})" aria-label="Eliminar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>`;
-  }).join('');
+    </div>
 
-  const totalSw = (totalPz / 4).toFixed(2);
-  document.getElementById('totalPz').textContent = totalPz.toLocaleString();
-  document.getElementById('totalSw').textContent = totalSw;
-}
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- CONFIGURACIÓN SUPABASE ---
+        const SUPABASE_URL = 'https://qveircqtcwklwwimedwj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2ZWlyY3F0Y3drbHd3aW1lZHdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDY1NTcsImV4cCI6MjA5NTM4MjU1N30.k-f1RV5WBevKyH3fowzqcya5HrRajZcFD3nFID4WRkQ';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- ESTADO GLOBAL ---
+        let currentUser = null;
+        let dailyItems = []; // Items temporales antes de guardar
+        let categoriasList = [];
+        let prendasList = [];
+        let currentChart = null;
 
-/* ─── Guardar registro ───────────────────────────── */
-async function doSave() {
-  if (!items.length) return;
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkSession();
+            loadCatalogs();
+        });
 
-  const btn = document.getElementById('saveBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Guardando...';
-
-  try {
-    const fecha    = document.getElementById('regFecha').value;
-    const obs      = document.getElementById('regObs').value.trim();
-    const totalPz  = items.reduce((s, i) => s + i.total, 0);
-    const totalSw  = parseFloat((totalPz / 4).toFixed(2));
-
-    // Insertar registro padre
-    const reg = await sbq('registros', 'POST', {
-      usuario_id:    currentUser.id,
-      fecha,
-      observacion:   obs,
-      total_piezas:  totalPz,
-      total_sueteres: totalSw
-    });
-
-    const registroId = reg[0].id;
-
-    // Insertar ítems hijos
-    await sbq('registro_items', 'POST',
-      items.map(i => ({
-        registro_id:       registroId,
-        tipo_prenda:       i.tipo,
-        descripcion:       i.desc,
-        talla:             i.talla,
-        categoria:         i.cat,
-        paquetes:          i.paq,
-        piezas_por_paquete: i.ppp,
-        cantidad:          i.total
-      }))
-    );
-
-    // Limpiar estado
-    items = [];
-    document.getElementById('regObs').value = '';
-    document.getElementById('regFecha').value = getTodayStr();
-    renderItems();
-
-    // Mostrar banner de éxito
-    const banner = document.getElementById('savedBanner');
-    banner.classList.remove('hidden');
-    document.getElementById('appContent').scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => banner.classList.add('hidden'), 5500);
-
-  } catch(e) {
-    alert('❌ Error al guardar: ' + e.message);
-  }
-
-  btn.disabled = false;
-  btn.textContent = '💾 Guardar Registro del Día';
-}
-
-/* ─── Navegación de tabs ─────────────────────────── */
-function setTab(t) {
-  const isReg  = t === 'reg';
-  const isDash = t === 'dash';
-
-  document.getElementById('tabReg').classList.toggle('hidden',  !isReg);
-  document.getElementById('tabDash').classList.toggle('hidden', !isDash);
-  document.getElementById('fabBtn').classList.toggle('hidden',  !isReg);
-
-  document.getElementById('navReg').classList.toggle('active',  isReg);
-  document.getElementById('navDash').classList.toggle('active', isDash);
-
-  if (isDash) loadDashboard();
-}
-
-/* ─── Sheet (Agregar prenda) ─────────────────────── */
-function openSheet() {
-  document.getElementById('sheetOverlay').classList.add('active');
-  document.getElementById('addSheet').classList.add('open');
-  document.getElementById('afErr').classList.add('hidden');
-  document.getElementById('afPreview').classList.remove('show');
-  // Scroll to top of sheet body
-  document.querySelector('.sheet-body').scrollTop = 0;
-}
-
-function closeSheet() {
-  document.getElementById('sheetOverlay').classList.remove('active');
-  document.getElementById('addSheet').classList.remove('open');
-  cancelNewCat();
-  cancelNewTipo();
-}
-
-/* ─── Dashboard: filtros ─────────────────────────── */
-function onDashFilterChange() {
-  const mode = document.getElementById('dashMode').value;
-  document.getElementById('dashMonthRow').classList.toggle('hidden', mode === 'year');
-  loadDashboard();
-}
-
-/* ─── Dashboard: cargar datos ────────────────────── */
-async function loadDashboard() {
-  const mode  = document.getElementById('dashMode').value;
-  const year  = parseInt(document.getElementById('dashYear').value);
-  const month = parseInt(document.getElementById('dashMonth').value);
-
-  // UI: loading
-  document.getElementById('dashLoading').classList.remove('hidden');
-  document.getElementById('dashEmpty').classList.add('hidden');
-  document.getElementById('dashStats').classList.add('hidden');
-  destroyCharts();
-  dashData = [];
-
-  try {
-    let startDate, endDate;
-    if (mode === 'mes') {
-      startDate = year + '-' + String(month).padStart(2,'0') + '-01';
-      const nm  = month === 12 ? 1 : month + 1;
-      const ny  = month === 12 ? year + 1 : year;
-      endDate   = ny + '-' + String(nm).padStart(2,'0') + '-01';
-    } else {
-      startDate = year + '-01-01';
-      endDate   = (year + 1) + '-01-01';
-    }
-
-    // 1. Obtener registros del período
-    const regs = await sbq(
-      'registros?usuario_id=eq.' + currentUser.id +
-      '&fecha=gte.' + startDate +
-      '&fecha=lt.'  + endDate  +
-      '&select=id,fecha'
-    );
-
-    if (!regs || !regs.length) {
-      document.getElementById('dashLoading').classList.add('hidden');
-      document.getElementById('dashEmpty').classList.remove('hidden');
-      return;
-    }
-
-    // 2. Obtener ítems de esos registros
-    const ids    = regs.map(r => r.id).join(',');
-    const items_ = await sbq('registro_items?registro_id=in.(' + ids + ')&select=*');
-    const regMap = {};
-    regs.forEach(r => { regMap[r.id] = r.fecha; });
-    dashData = (items_ || []).map(i => ({ ...i, fecha: regMap[i.registro_id] }));
-
-    renderDashboard(mode, year);
-
-  } catch(e) {
-    console.error('Error cargando dashboard:', e);
-    document.getElementById('dashEmpty').classList.remove('hidden');
-  }
-
-  document.getElementById('dashLoading').classList.add('hidden');
-}
-
-/* ─── Dashboard: renderizar ──────────────────────── */
-function renderDashboard(mode, year) {
-  if (!dashData.length) {
-    document.getElementById('dashEmpty').classList.remove('hidden');
-    return;
-  }
-
-  const totalPz = dashData.reduce((s, i) => s + i.cantidad, 0);
-  const totalSw = totalPz / 4;
-
-  // Por categoría
-  const uniqCats = [...new Set(dashData.map(i => i.categoria))].filter(Boolean);
-  const byCat = uniqCats.map((c, ci) => ({
-    name: c,
-    val:  dashData.filter(i => i.categoria === c).reduce((s, i) => s + i.cantidad, 0),
-    clr:  CAT_COLORS[ci % CAT_COLORS.length]
-  })).sort((a, b) => b.val - a.val);
-
-  // Por tipo
-  const uniqTipos = [...new Set(dashData.map(i => i.tipo_prenda))].filter(Boolean);
-  const byTipo = uniqTipos.map((t, ti) => ({
-    name: t,
-    val:  dashData.filter(i => i.tipo_prenda === t).reduce((s, i) => s + i.cantidad, 0),
-    clr:  TIPO_COLORS[ti % TIPO_COLORS.length]
-  }));
-
-  const topCat = byCat[0] || { name: '—', val: 0 };
-
-  // Actualizar tarjetas
-  document.getElementById('dTotalPz').textContent = totalPz.toLocaleString();
-  document.getElementById('dTotalSw').textContent = totalSw.toFixed(1);
-  document.getElementById('dTopCat').textContent  = topCat.name;
-  document.getElementById('dTopPz').textContent   = topCat.val.toLocaleString() + ' pzas';
-
-  // ── Gráfica: Por Categoría ──
-  const ctxCat = document.getElementById('chartCat').getContext('2d');
-  chartInstances.cat = new Chart(ctxCat, {
-    type: 'bar',
-    data: {
-      labels: byCat.map(c => c.name),
-      datasets: [{
-        data:            byCat.map(c => c.val),
-        backgroundColor: byCat.map(c => c.clr),
-        borderRadius:    8,
-        borderSkipped:   false
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toLocaleString() + ' pzas' } }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#607D8B' } },
-        y: { grid: { color: '#F0F4F5' }, ticks: { font: { size: 10 }, color: '#90A4AE' } }
-      }
-    }
-  });
-
-  // Leyenda categorías
-  document.getElementById('legendCat').innerHTML = byCat.map(c =>
-    `<div class="leg-pill">
-      <div class="leg-dot" style="background:${c.clr}"></div>
-      ${c.name}: <strong>${c.val.toLocaleString()}</strong>
-    </div>`
-  ).join('');
-
-  // ── Gráfica: Por Tipo (Donut) ──
-  const ctxTipo = document.getElementById('chartTipo').getContext('2d');
-  chartInstances.tipo = new Chart(ctxTipo, {
-    type: 'doughnut',
-    data: {
-      labels:   byTipo.map(t => t.name),
-      datasets: [{
-        data:            byTipo.map(t => t.val),
-        backgroundColor: byTipo.map(t => t.clr),
-        borderWidth:     0,
-        hoverOffset:     6
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, color: '#607D8B' } },
-        tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.toLocaleString() + ' pzas' } }
-      }
-    }
-  });
-
-  // ── Gráfica: Mensual (modo año) ──
-  const mesBox = document.getElementById('chartMesBox');
-  if (mode === 'year') {
-    mesBox.classList.remove('hidden');
-    document.getElementById('chartMesTitle').textContent = 'Producción Mensual ' + year;
-    const byMes = Array.from({ length: 12 }, (_, mi) => ({
-      name: MESES[mi].substring(0, 3),
-      val: dashData
-        .filter(i => i.fecha && new Date(i.fecha + 'T00:00:00').getMonth() === mi)
-        .reduce((s, i) => s + i.cantidad, 0)
-    }));
-    const ctxMes = document.getElementById('chartMes').getContext('2d');
-    chartInstances.mes = new Chart(ctxMes, {
-      type: 'bar',
-      data: {
-        labels: byMes.map(m => m.name),
-        datasets: [{
-          data:            byMes.map(m => m.val),
-          backgroundColor: '#45B0BA',
-          borderRadius:    8,
-          borderSkipped:   false
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toLocaleString() + ' pzas' } }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#607D8B' } },
-          y: { grid: { color: '#F0F4F5' }, ticks: { font: { size: 10 }, color: '#90A4AE' } }
+        async function checkSession() {
+            // En una app real usaríamos supabase.auth, pero usaremos tu tabla custom
+            const storedUser = localStorage.getItem('qt_user');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                showApp();
+            }
         }
-      }
-    });
-  } else {
-    mesBox.classList.add('hidden');
-  }
 
-  document.getElementById('dashStats').classList.remove('hidden');
-}
+        async function loadCatalogs() {
+            const [{ data: cats }, { data: prendas }] = await Promise.all([
+                supabase.from('categorias').select('*').eq('activo', true).order('nombre'),
+                supabase.from('tipos_prenda').select('*').eq('activo', true).order('nombre')
+            ]);
+            categoriasList = cats || [];
+            prendasList = prendas || [];
+        }
 
-/* ─── Destruir gráficas ──────────────────────────── */
-function destroyCharts() {
-  Object.values(chartInstances).forEach(ch => { try { ch.destroy(); } catch(e) {} });
-  chartInstances = {};
-}
+        // --- AUTH ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value;
+            const errEl = document.getElementById('login-error');
 
-/* ─── Arrancar ───────────────────────────────────── */
-init();
-</script>
+            // NOTA: En producción NUNCA hagas esto. Deberías usar Supabase Auth RPC o Edge Functions.
+            // Para tu app personal con RLS desactivado, esto funciona como validación simple.
+            const { data, error } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('username', user)
+                .single();
+
+            if (error || !data || data.password !== pass) {
+                errEl.textContent = "Usuario o contraseña incorrectos";
+                errEl.classList.remove('hidden');
+                return;            }
+
+            currentUser = { id: data.id, username: data.username };
+            localStorage.setItem('qt_user', JSON.stringify(currentUser));
+            showApp();
+        });
+
+        function logout() {
+            localStorage.removeItem('qt_user');
+            location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('flex');
+            showView('register');
+        }
+
+        // --- NAVEGACIÓN Y VISTAS ---
+        function showView(viewName) {
+            // Actualizar tabs
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.dataset.view === viewName;
+                btn.classList.toggle('text-blue-600', isActive);
+                btn.classList.toggle('text-gray-400', !isActive);
+            });
+
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+
+            if (viewName === 'register') renderRegisterView(container);
+            if (viewName === 'dashboard') renderDashboardView(container);
+        }
+
+        // --- VISTA REGISTRO ---
+        function renderRegisterView(container) {
+            const catOptions = categoriasList.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join('');
+            const prendaOptions = prendasList.map(p => `<option value="${p.nombre}">${p.nombre}</option>`).join('');
+
+            const html = `
+                <div class="fade-in space-y-4">
+                    <!-- Tarjeta de Resumen Temporal -->
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Sesión Actual</p>
+                            <p class="text-2xl font-bold text-blue-900">${dailyItems.reduce((acc, i) => acc + i.cantidad, 0)} <span class="text-sm font-normal text-blue-700">piezas</span></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Suéteres (÷4)</p>                            <p class="text-2xl font-bold text-blue-900">${(dailyItems.reduce((acc, i) => acc + i.cantidad, 0) / 4).toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Formulario Item -->
+                    <div class="bg-white rounded-xl shadow-sm p-5 space-y-3 border border-gray-100">
+                        <h3 class="font-bold text-gray-700 mb-2"><i class="fa-solid fa-box-open mr-2 text-blue-500"></i>Nuevo Paquete</h3>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Tipo Prenda</label>
+                                <select id="reg-prenda" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    ${prendaOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Categoría</label>
+                                <div class="relative">
+                                    <select id="reg-categoria" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none appearance-none pr-8">
+                                        ${catOptions}
+                                        <option value="__NEW__">➕ Agregar Nueva...</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-4 text-gray-400 pointer-events-none text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">No. Paquetes</label>
+                                <input type="number" id="reg-paquetes" min="1" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Piezas/Paquete</label>
+                                <input type="number" id="reg-piezas" min="1" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                            </div>
+                        </div>
+
+                        <button onclick="addItemToSession()" class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition active:scale-[0.98]">
+                            <i class="fa-solid fa-plus mr-2"></i>Agregar a Lista
+                        </button>
+                    </div>
+
+                    <!-- Lista de Items Agregados -->
+                    ${dailyItems.length > 0 ? `
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-bold text-gray-500 ml-1">PAQUETES EN SESIÓN (${dailyItems.length})</h4>
+                            ${dailyItems.map((item, idx) => `
+                                <div class="bg-white p-3 rounded-lg border-l-4 border-blue-500 shadow-sm flex justify-between items-center">
+                                    <div>                                        <p class="font-bold text-gray-800">${item.tipo_prenda} - ${item.categoria}</p>
+                                        <p class="text-xs text-gray-500">${item.paquetes} pqtes × ${item.piezas_por_paquete} pzs</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-bold text-blue-700">${item.cantidad} pzs</span>
+                                        <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    <!-- Observación y Guardar Final -->
+                    ${dailyItems.length > 0 ? `
+                        <div class="bg-white rounded-xl shadow-sm p-5 space-y-3 border border-gray-100 mt-4">
+                            <label class="text-sm font-bold text-gray-700">Observaciones del Día</label>
+                            <textarea id="reg-obs" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Ej. Se revisó menos por cambio de línea..."></textarea>
+                            
+                            <button onclick="saveFullDay()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-green-700 transition active:scale-[0.98]">
+                                <i class="fa-solid fa-save mr-2"></i>GUARDAR DÍA
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            container.innerHTML = html;
+
+            // Listener para nueva categoría
+            setTimeout(() => {
+                const catSelect = document.getElementById('reg-categoria');
+                if(catSelect) {
+                    catSelect.addEventListener('change', (e) => {
+                        if(e.target.value === '__NEW__') {
+                            document.getElementById('modal-new-cat').classList.remove('hidden');
+                            e.target.selectedIndex = 0; // Reset select
+                        }
+                    });
+                }
+            }, 0);
+        }
+
+        // --- LÓGICA DE REGISTRO ---
+        function addItemToSession() {
+            const prenda = document.getElementById('reg-prenda').value;
+            const categoria = document.getElementById('reg-categoria').value;
+            const paquetes = parseInt(document.getElementById('reg-paquetes').value) || 0;
+            const piezas = parseInt(document.getElementById('reg-piezas').value) || 0;
+
+            if (!categoria || paquetes <= 0 || piezas <= 0) {
+                alert("Por favor llena todos los campos correctamente");                return;
+            }
+
+            dailyItems.push({
+                tipo_prenda: prenda,
+                categoria: categoria,
+                paquetes: paquetes,
+                piezas_por_paquete: piezas,
+                cantidad: paquetes * piezas
+            });
+
+            // Re-renderizar para actualizar lista y totales
+            renderRegisterView(document.getElementById('main-content'));
+        }
+
+        function removeItem(index) {
+            dailyItems.splice(index, 1);
+            renderRegisterView(document.getElementById('main-content'));
+        }
+
+        async function saveNewCategory() {
+            const name = document.getElementById('new-cat-name').value.trim();
+            if(!name) return;
+
+            const { data, error } = await supabase.from('categorias').insert({ nombre: name }).select().single();
+            
+            if(error) {
+                alert("Error al crear categoría (¿ya existe?)");
+            } else {
+                categoriasList.push(data);
+                categoriasList.sort((a,b) => a.nombre.localeCompare(b.nombre));
+                closeModal();
+                document.getElementById('new-cat-name').value = '';
+                // Re-renderizar para mostrar la nueva opción
+                renderRegisterView(document.getElementById('main-content'));
+                // Seleccionar la nueva automáticamente después del render
+                setTimeout(() => {
+                    const sel = document.getElementById('reg-categoria');
+                    if(sel) sel.value = name;
+                }, 50);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-new-cat').classList.add('hidden');
+        }
+
+        async function saveFullDay() {
+            if(!confirm(`¿Guardar ${dailyItems.length} paquetes y finalizar registro de hoy?`)) return;
+            const obs = document.getElementById('reg-obs').value;
+            const totalPiezas = dailyItems.reduce((acc, i) => acc + i.cantidad, 0);
+            const totalSueteres = totalPiezas / 4;
+
+            // 1. Crear registro padre
+            const { data: reg, error: regErr } = await supabase.from('registros').insert({
+                usuario_id: currentUser.id,
+                total_piezas: totalPiezas,
+                total_sueteres: totalSueteres,
+                observacion: obs
+            }).select().single();
+
+            if(regErr) { alert("Error al guardar registro principal"); console.error(regErr); return; }
+
+            // 2. Insertar items en batch
+            const itemsToInsert = dailyItems.map(item => ({
+                registro_id: reg.id,
+                ...item
+            }));
+
+            const { error: itemsErr } = await supabase.from('registro_items').insert(itemsToInsert);
+
+            if(itemsErr) { alert("Error al guardar detalles"); console.error(itemsErr); return; }
+
+            // Éxito
+            alert(`✅ Día guardado exitosamente.\nTotal: ${totalPiezas} piezas (${totalSueteres} suéteres)`);
+            dailyItems = [];
+            renderRegisterView(document.getElementById('main-content'));
+        }
+
+        // --- VISTA DASHBOARD ---
+        async function renderDashboardView(container) {
+            container.innerHTML = `
+                <div class="fade-in space-y-4">
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                        <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-filter mr-2 text-blue-500"></i>Filtrar Periodo</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-500">Mes</label>
+                                <select id="dash-month" class="w-full bg-gray-50 border rounded-lg p-2 text-sm">
+                                    ${Array.from({length:12}, (_,i) => `<option value="${i+1}" ${i+1 === new Date().getMonth()+1 ? 'selected':''}>${new Date(0, i).toLocaleString('es', {month:'long'})}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Año</label>
+                                <select id="dash-year" class="w-full bg-gray-50 border rounded-lg p-2 text-sm">
+                                    ${Array.from({length:5}, (_,i) => `<option value="${new Date().getFullYear()-i}" ${i===0?'selected':''}>${new Date().getFullYear()-i}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>                        <button onclick="loadDashboardData()" class="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg text-sm font-bold">Actualizar Datos</button>
+                    </div>
+
+                    <div id="dash-stats" class="grid grid-cols-2 gap-3">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
+                            <p class="text-xs text-gray-500 uppercase">Total Piezas</p>
+                            <p class="text-2xl font-bold text-gray-800" id="stat-piezas">-</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
+                            <p class="text-xs text-gray-500 uppercase">Suéteres Completos</p>
+                            <p class="text-2xl font-bold text-blue-600" id="stat-sueteres">-</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-gray-700 mb-2 text-sm">Distribución por Categoría</h4>
+                        <div class="relative h-64">
+                            <canvas id="catChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div id="dash-loading" class="hidden text-center py-10">
+                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8 mx-auto"></div>
+                    </div>
+                </div>
+            `;
+            loadDashboardData();
+        }
+
+        async function loadDashboardData() {
+            const month = parseInt(document.getElementById('dash-month').value);
+            const year = parseInt(document.getElementById('dash-year').value);
+            
+            // Construir rango de fechas para el mes seleccionado
+            const startDate = `${year}-${String(month).padStart(2,'0')}-01`;
+            const lastDay = new Date(year, month, 0).getDate();
+            const endDate = `${year}-${String(month).padStart(2,'0')}-${lastDay}`;
+
+            document.getElementById('dash-loading').classList.remove('hidden');
+
+            // Obtener registros del periodo
+            const { data: registros, error } = await supabase
+                .from('registros')
+                .select('id, total_piezas, total_sueteres')
+                .gte('fecha', startDate)
+                .lte('fecha', endDate)
+                .eq('usuario_id', currentUser.id);
+
+            if(error) { console.error(error); return; }
+            const totalPiezas = registros.reduce((acc, r) => acc + r.total_piezas, 0);
+            const totalSueteres = registros.reduce((acc, r) => acc + parseFloat(r.total_sueteres), 0);
+
+            document.getElementById('stat-piezas').textContent = totalPiezas.toLocaleString();
+            document.getElementById('stat-sueteres').textContent = totalSueteres.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+            // Obtener desglose por categoría usando los IDs de los registros encontrados
+            if(registros.length > 0) {
+                const regIds = registros.map(r => r.id);
+                const { data: items } = await supabase
+                    .from('registro_items')
+                    .select('categoria, cantidad')
+                    .in('registro_id', regIds);
+
+                // Agrupar por categoría
+                const catMap = {};
+                items.forEach(i => {
+                    catMap[i.categoria] = (catMap[i.categoria] || 0) + i.cantidad;
+                });
+
+                renderChart(catMap);
+            } else {
+                renderChart({});
+            }
+
+            document.getElementById('dash-loading').classList.add('hidden');
+        }
+
+        function renderChart(dataMap) {
+            const ctx = document.getElementById('catChart').getContext('2d');
+            
+            if(currentChart) currentChart.destroy();
+
+            const labels = Object.keys(dataMap);
+            const values = Object.values(dataMap);
+
+            if(labels.length === 0) {
+                ctx.font = "14px sans-serif";
+                ctx.fillStyle = "#9ca3af";
+                ctx.textAlign = "center";
+                ctx.fillText("Sin datos para este periodo", ctx.canvas.width/2, ctx.canvas.height/2);
+                return;
+            }
+
+            currentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,                        backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#6366f1','#14b8a6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
