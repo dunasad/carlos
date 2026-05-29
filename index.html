@@ -91,97 +91,7 @@
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // --- CONFIGURACIÓN SUPABASE ---
-        const SUPABASE_URL = 'https://qveircqtcwklwwimedwj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2ZWlyY3F0Y3drbHd3aW1lZHdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDY1NTcsImV4cCI6MjA5NTM4MjU1N30.k-f1RV5WBevKyH3fowzqcya5HrRajZcFD3nFID4WRkQ';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // --- ESTADO GLOBAL ---
-        let currentUser = null;
-        let dailyItems = []; // Items temporales antes de guardar
-        let categoriasList = [];
-        let prendasList = [];
-        let currentChart = null;
-
-        // --- INICIALIZACIÓN ---
-        document.addEventListener('DOMContentLoaded', () => {
-            checkSession();
-            loadCatalogs();
-        });
-
-        async function checkSession() {
-            // En una app real usaríamos supabase.auth, pero usaremos tu tabla custom
-            const storedUser = localStorage.getItem('qt_user');
-            if (storedUser) {
-                currentUser = JSON.parse(storedUser);
-                showApp();
-            }
-        }
-
-        async function loadCatalogs() {
-            const [{ data: cats }, { data: prendas }] = await Promise.all([
-                supabase.from('categorias').select('*').eq('activo', true).order('nombre'),
-                supabase.from('tipos_prenda').select('*').eq('activo', true).order('nombre')
-            ]);
-            categoriasList = cats || [];
-            prendasList = prendas || [];
-        }
-
-        // --- AUTH ---
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value;
-            const errEl = document.getElementById('login-error');
-
-            // NOTA: En producción NUNCA hagas esto. Deberías usar Supabase Auth RPC o Edge Functions.
-            // Para tu app personal con RLS desactivado, esto funciona como validación simple.
-            const { data, error } = await supabase
-                .from('usuarios')
-                .select('*')
-                .eq('username', user)
-                .single();
-
-            if (error || !data || data.password !== pass) {
-                errEl.textContent = "Usuario o contraseña incorrectos";
-                errEl.classList.remove('hidden');
-                return;            }
-
-            currentUser = { id: data.id, username: data.username };
-            localStorage.setItem('qt_user', JSON.stringify(currentUser));
-            showApp();
-        });
-
-        function logout() {
-            localStorage.removeItem('qt_user');
-            location.reload();
-        }
-
-        function showApp() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-            document.getElementById('app-container').classList.add('flex');
-            showView('register');
-        }
-
-        // --- NAVEGACIÓN Y VISTAS ---
-        function showView(viewName) {
-            // Actualizar tabs
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                const isActive = btn.dataset.view === viewName;
-                btn.classList.toggle('text-blue-600', isActive);
-                btn.classList.toggle('text-gray-400', !isActive);
-            });
-
-            const container = document.getElementById('main-content');
-            container.innerHTML = '';
-
-            if (viewName === 'register') renderRegisterView(container);
-            if (viewName === 'dashboard') renderDashboardView(container);
-        }
-
-        // --- VISTA REGISTRO ---
-        function renderRegisterView(container) {
+    renderRegisterView(container) {
             const catOptions = categoriasList.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join('');
             const prendaOptions = prendasList.map(p => `<option value="${p.nombre}">${p.nombre}</option>`).join('');
 
@@ -285,14 +195,502 @@
         }
 
         // --- LÓGICA DE REGISTRO ---
+         <script>
+        // --- CONFIGURACIÓN SUPABASE ---
+        const SUPABASE_URL = 'https://qveircqtcwklwwimedwj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2ZWlyY3F0Y3drbHd3aW1lZHdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDY1NTcsImV4cCI6MjA5NTM4MjU1N30.k-f1RV5WBevKyH3fowzqcya5HrRajZcFD3nFID4WRkQ';
+        
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("✅ Cliente Supabase inicializado correctamente");
+        } catch (e) {
+            alert("❌ ERROR CRÍTICO: No se pudo cargar la librería de Supabase. Revisa tu conexión a internet.");
+            console.error(e);
+        }
+
+        // --- ESTADO GLOBAL ---
+        let currentUser = null;
+        let dailyItems = []; 
+        let categoriasList = [];
+        let prendasList = [];
+        let currentChart = null;
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkSession();
+            await loadCatalogs();
+        });
+
+        async function checkSession() {
+            const storedUser = localStorage.getItem('qt_user');
+            if (storedUser) {
+                try {
+                    currentUser = JSON.parse(storedUser);
+                    showApp();
+                } catch(e) {
+                    localStorage.removeItem('qt_user');
+                }
+            }
+        }
+
+        async function loadCatalogs() {
+            if(!supabase) return;
+            
+            const [{ data: cats, error: errCat }, { data: prendas, error: errPre }] = await Promise.all([
+                supabase.from('categorias').select('*').eq('activo', true).order('nombre'),
+                supabase.from('tipos_prenda').select('*').eq('activo', true).order('nombre')
+            ]);
+            
+            if(errCat) console.error("Error cargando categorías:", errCat.message);
+            if(errPre) console.error("Error cargando prendas:", errPre.message);
+                        categoriasList = cats || [];
+            prendasList = prendas || [];
+        }
+
+        // --- AUTH MEJORADO ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value;
+            const errEl = document.getElementById('login-error');
+            const btn = e.target.querySelector('button[type="submit"]');
+            
+            // Feedback visual de carga
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Validando...';
+            btn.disabled = true;
+            errEl.classList.add('hidden');
+
+            if(!supabase) {
+                showError(errEl, "La app no está conectada a Supabase. Recarga la página.");
+                resetBtn(btn, originalText);
+                return;
+            }
+
+            try {
+                // Consulta directa a tu tabla personalizada
+                const { data, error } = await supabase
+                    .from('usuarios')
+                    .select('id, username, password')
+                    .eq('username', user)
+                    .maybeSingle(); // maybeSingle evita error 406 si no encuentra nada
+
+                if (error) {
+                    console.error("Error DB:", error);
+                    showError(errEl, `Error de Base de Datos: ${error.message}. ¿Desactivaste el RLS?`);
+                } else if (!data) {
+                    showError(errEl, "Usuario no encontrado.");
+                } else if (data.password !== pass) {
+                    showError(errEl, "Contraseña incorrecta.");
+                } else {
+                    // LOGIN EXITOSO
+                    currentUser = { id: data.id, username: data.username };
+                    localStorage.setItem('qt_user', JSON.stringify(currentUser));
+                    showApp();
+                }
+            } catch (exception) {
+                console.error("Excepción Login:", exception);
+                showError(errEl, "Error inesperado. Revisa la consola (F12).");
+            } finally {
+                resetBtn(btn, originalText);            }
+        });
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.add('animate-pulse');
+            setTimeout(() => element.classList.remove('animate-pulse'), 500);
+        }
+
+        function resetBtn(btn, text) {
+            btn.innerHTML = text;
+            btn.disabled = false;
+        }
+
+        function logout() {
+            localStorage.removeItem('qt_user');
+            location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('flex');
+            showView('register');
+        }
+
+        // --- NAVEGACIÓN Y VISTAS ---
+        function showView(viewName) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.dataset.view === viewName;
+                btn.classList.toggle('text-blue-600', isActive);
+                btn.classList.toggle('text-gray-400', !isActive);
+            });
+
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+
+            if (viewName === 'register') renderRegisterView(container);
+            if (viewName === 'dashboard') renderDashboardView(container);
+        }
+
+        // --- VISTA REGISTRO ---
+        function renderRegisterView(container) {
+            const catOptions = categoriasList.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join('');
+            const prendaOptions = prendasList.map(p => `<option value="${p.nombre}">${p.nombre}</option>`).join('');
+
+            const html = `
+                <div class="fade-in space-y-4">
+                    <!-- Tarjeta de Resumen Temporal -->                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Sesión Actual</p>
+                            <p class="text-2xl font-bold text-blue-900">${dailyItems.reduce((acc, i) => acc + i.cantidad, 0)} <span class="text-sm font-normal text-blue-700">piezas</span></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Suéteres (÷4)</p>
+                            <p class="text-2xl font-bold text-blue-900">${(dailyItems.reduce((acc, i) => acc + i.cantidad, 0) / 4).toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Formulario Item -->
+                    <div class="bg-white rounded-xl shadow-sm p-5 space-y-3 border border-gray-100">
+                        <h3 class="font-bold text-gray-700 mb-2"><i class="fa-solid fa-box-open mr-2 text-blue-500"></i>Nuevo Paquete</h3>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Tipo Prenda</label>
+                                <select id="reg-prenda" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    ${prendaOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Categoría</label>
+                                <div class="relative">
+                                    <select id="reg-categoria" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none appearance-none pr-8">
+                                        ${catOptions}
+                                        <option value="__NEW__">➕ Agregar Nueva...</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-4 text-gray-400 pointer-events-none text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">No. Paquetes</label>
+                                <input type="number" id="reg-paquetes" min="1" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Piezas/Paquete</label>
+                                <input type="number" id="reg-piezas" min="1" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                            </div>
+                        </div>
+
+                        <button onclick="addItemToSession()" class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition active:scale-[0.98]">
+                            <i class="fa-solid fa-plus mr-2"></i>Agregar a Lista
+                        </button>
+                    </div>
+                    <!-- Lista de Items Agregados -->
+                    ${dailyItems.length > 0 ? `
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-bold text-gray-500 ml-1">PAQUETES EN SESIÓN (${dailyItems.length})</h4>
+                            ${dailyItems.map((item, idx) => `
+                                <div class="bg-white p-3 rounded-lg border-l-4 border-blue-500 shadow-sm flex justify-between items-center">
+                                    <div>
+                                        <p class="font-bold text-gray-800">${item.tipo_prenda} - ${item.categoria}</p>
+                                        <p class="text-xs text-gray-500">${item.paquetes} pqtes × ${item.piezas_por_paquete} pzs</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-bold text-blue-700">${item.cantidad} pzs</span>
+                                        <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    <!-- Observación y Guardar Final -->
+                    ${dailyItems.length > 0 ? `
+                        <div class="bg-white rounded-xl shadow-sm p-5 space-y-3 border border-gray-100 mt-4">
+                            <label class="text-sm font-bold text-gray-700">Observaciones del Día</label>
+                            <textarea id="reg-obs" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Ej. Se revisó menos por cambio de línea..."></textarea>
+                            
+                            <button onclick="saveFullDay()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-green-700 transition active:scale-[0.98]">
+                                <i class="fa-solid fa-save mr-2"></i>GUARDAR DÍA
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                const catSelect = document.getElementById('reg-categoria');
+                if(catSelect) {
+                    catSelect.addEventListener('change', (e) => {
+                        if(e.target.value === '__NEW__') {
+                            document.getElementById('modal-new-cat').classList.remove('hidden');
+                            e.target.selectedIndex = 0; 
+                        }
+                    });
+                }
+            }, 0);
+        }
+
+        // --- LÓGICA DE REGISTRO ---
+        <script>
+        // --- CONFIGURACIÓN SUPABASE ---
+        const SUPABASE_URL = 'https://qveircqtcwklwwimedwj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2ZWlyY3F0Y3drbHd3aW1lZHdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDY1NTcsImV4cCI6MjA5NTM4MjU1N30.k-f1RV5WBevKyH3fowzqcya5HrRajZcFD3nFID4WRkQ';
+        
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("✅ Cliente Supabase inicializado correctamente");
+        } catch (e) {
+            alert("❌ ERROR CRÍTICO: No se pudo cargar la librería de Supabase. Revisa tu conexión a internet.");
+            console.error(e);
+        }
+
+        // --- ESTADO GLOBAL ---
+        let currentUser = null;
+        let dailyItems = []; 
+        let categoriasList = [];
+        let prendasList = [];
+        let currentChart = null;
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkSession();
+            await loadCatalogs();
+        });
+
+        async function checkSession() {
+            const storedUser = localStorage.getItem('qt_user');
+            if (storedUser) {
+                try {
+                    currentUser = JSON.parse(storedUser);
+                    showApp();
+                } catch(e) {
+                    localStorage.removeItem('qt_user');
+                }
+            }
+        }
+
+        async function loadCatalogs() {
+            if(!supabase) return;
+            
+            const [{ data: cats, error: errCat }, { data: prendas, error: errPre }] = await Promise.all([
+                supabase.from('categorias').select('*').eq('activo', true).order('nombre'),
+                supabase.from('tipos_prenda').select('*').eq('activo', true).order('nombre')
+            ]);
+            
+            if(errCat) console.error("Error cargando categorías:", errCat.message);
+            if(errPre) console.error("Error cargando prendas:", errPre.message);
+                        categoriasList = cats || [];
+            prendasList = prendas || [];
+        }
+
+        // --- AUTH MEJORADO ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value;
+            const errEl = document.getElementById('login-error');
+            const btn = e.target.querySelector('button[type="submit"]');
+            
+            // Feedback visual de carga
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Validando...';
+            btn.disabled = true;
+            errEl.classList.add('hidden');
+
+            if(!supabase) {
+                showError(errEl, "La app no está conectada a Supabase. Recarga la página.");
+                resetBtn(btn, originalText);
+                return;
+            }
+
+            try {
+                // Consulta directa a tu tabla personalizada
+                const { data, error } = await supabase
+                    .from('usuarios')
+                    .select('id, username, password')
+                    .eq('username', user)
+                    .maybeSingle(); // maybeSingle evita error 406 si no encuentra nada
+
+                if (error) {
+                    console.error("Error DB:", error);
+                    showError(errEl, `Error de Base de Datos: ${error.message}. ¿Desactivaste el RLS?`);
+                } else if (!data) {
+                    showError(errEl, "Usuario no encontrado.");
+                } else if (data.password !== pass) {
+                    showError(errEl, "Contraseña incorrecta.");
+                } else {
+                    // LOGIN EXITOSO
+                    currentUser = { id: data.id, username: data.username };
+                    localStorage.setItem('qt_user', JSON.stringify(currentUser));
+                    showApp();
+                }
+            } catch (exception) {
+                console.error("Excepción Login:", exception);
+                showError(errEl, "Error inesperado. Revisa la consola (F12).");
+            } finally {
+                resetBtn(btn, originalText);            }
+        });
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.add('animate-pulse');
+            setTimeout(() => element.classList.remove('animate-pulse'), 500);
+        }
+
+        function resetBtn(btn, text) {
+            btn.innerHTML = text;
+            btn.disabled = false;
+        }
+
+        function logout() {
+            localStorage.removeItem('qt_user');
+            location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('flex');
+            showView('register');
+        }
+
+        // --- NAVEGACIÓN Y VISTAS ---
+        function showView(viewName) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.dataset.view === viewName;
+                btn.classList.toggle('text-blue-600', isActive);
+                btn.classList.toggle('text-gray-400', !isActive);
+            });
+
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+
+            if (viewName === 'register') renderRegisterView(container);
+            if (viewName === 'dashboard') renderDashboardView(container);
+        }
+
+        // --- VISTA REGISTRO ---
+        function renderRegisterView(container) {
+            const catOptions = categoriasList.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join('');
+            const prendaOptions = prendasList.map(p => `<option value="${p.nombre}">${p.nombre}</option>`).join('');
+
+            const html = `
+                <div class="fade-in space-y-4">
+                    <!-- Tarjeta de Resumen Temporal -->                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Sesión Actual</p>
+                            <p class="text-2xl font-bold text-blue-900">${dailyItems.reduce((acc, i) => acc + i.cantidad, 0)} <span class="text-sm font-normal text-blue-700">piezas</span></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Suéteres (÷4)</p>
+                            <p class="text-2xl font-bold text-blue-900">${(dailyItems.reduce((acc, i) => acc + i.cantidad, 0) / 4).toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Formulario Item -->
+                    <div class="bg-white rounded-xl shadow-sm p-5 space-y-3 border border-gray-100">
+                        <h3 class="font-bold text-gray-700 mb-2"><i class="fa-solid fa-box-open mr-2 text-blue-500"></i>Nuevo Paquete</h3>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Tipo Prenda</label>
+                                <select id="reg-prenda" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    ${prendaOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Categoría</label>
+                                <div class="relative">
+                                    <select id="reg-categoria" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none appearance-none pr-8">
+                                        ${catOptions}
+                                        <option value="__NEW__">➕ Agregar Nueva...</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-4 text-gray-400 pointer-events-none text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">No. Paquetes</label>
+                                <input type="number" id="reg-paquetes" min="1" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 ml-1">Piezas/Paquete</label>
+                                <input type="number" id="reg-piezas" min="1" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                            </div>
+                        </div>
+
+                        <button onclick="addItemToSession()" class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition active:scale-[0.98]">
+                            <i class="fa-solid fa-plus mr-2"></i>Agregar a Lista
+                        </button>
+                    </div>
+                    <!-- Lista de Items Agregados -->
+                    ${dailyItems.length > 0 ? `
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-bold text-gray-500 ml-1">PAQUETES EN SESIÓN (${dailyItems.length})</h4>
+                            ${dailyItems.map((item, idx) => `
+                                <div class="bg-white p-3 rounded-lg border-l-4 border-blue-500 shadow-sm flex justify-between items-center">
+                                    <div>
+                                        <p class="font-bold text-gray-800">${item.tipo_prenda} - ${item.categoria}</p>
+                                        <p class="text-xs text-gray-500">${item.paquetes} pqtes × ${item.piezas_por_paquete} pzs</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-bold text-blue-700">${item.cantidad} pzs</span>
+                                        <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    <!-- Observación y Guardar Final -->
+                    ${dailyItems.length > 0 ? `
+                        <div class="bg-white rounded-xl shadow-sm p-5 space-y-3 border border-gray-100 mt-4">
+                            <label class="text-sm font-bold text-gray-700">Observaciones del Día</label>
+                            <textarea id="reg-obs" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Ej. Se revisó menos por cambio de línea..."></textarea>
+                            
+                            <button onclick="saveFullDay()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-green-700 transition active:scale-[0.98]">
+                                <i class="fa-solid fa-save mr-2"></i>GUARDAR DÍA
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                const catSelect = document.getElementById('reg-categoria');
+                if(catSelect) {
+                    catSelect.addEventListener('change', (e) => {
+                        if(e.target.value === '__NEW__') {
+                            document.getElementById('modal-new-cat').classList.remove('hidden');
+                            e.target.selectedIndex = 0; 
+                        }
+                    });
+                }
+            }, 0);
+        }
+
+        // --- LÓGICA DE REGISTRO ---
         function addItemToSession() {
-            const prenda = document.getElementById('reg-prenda').value;
-            const categoria = document.getElementById('reg-categoria').value;
+            const prenda = document.getElementById('reg-prenda').value;            const categoria = document.getElementById('reg-categoria').value;
             const paquetes = parseInt(document.getElementById('reg-paquetes').value) || 0;
             const piezas = parseInt(document.getElementById('reg-piezas').value) || 0;
 
             if (!categoria || paquetes <= 0 || piezas <= 0) {
-                alert("Por favor llena todos los campos correctamente");                return;
+                alert("Por favor llena todos los campos correctamente");
+                return;
             }
 
             dailyItems.push({
@@ -303,7 +701,6 @@
                 cantidad: paquetes * piezas
             });
 
-            // Re-renderizar para actualizar lista y totales
             renderRegisterView(document.getElementById('main-content'));
         }
 
@@ -319,15 +716,13 @@
             const { data, error } = await supabase.from('categorias').insert({ nombre: name }).select().single();
             
             if(error) {
-                alert("Error al crear categoría (¿ya existe?)");
+                alert("Error al crear categoría: " + error.message);
             } else {
                 categoriasList.push(data);
                 categoriasList.sort((a,b) => a.nombre.localeCompare(b.nombre));
                 closeModal();
                 document.getElementById('new-cat-name').value = '';
-                // Re-renderizar para mostrar la nueva opción
                 renderRegisterView(document.getElementById('main-content'));
-                // Seleccionar la nueva automáticamente después del render
                 setTimeout(() => {
                     const sel = document.getElementById('reg-categoria');
                     if(sel) sel.value = name;
@@ -338,14 +733,13 @@
         function closeModal() {
             document.getElementById('modal-new-cat').classList.add('hidden');
         }
-
         async function saveFullDay() {
             if(!confirm(`¿Guardar ${dailyItems.length} paquetes y finalizar registro de hoy?`)) return;
+
             const obs = document.getElementById('reg-obs').value;
             const totalPiezas = dailyItems.reduce((acc, i) => acc + i.cantidad, 0);
             const totalSueteres = totalPiezas / 4;
 
-            // 1. Crear registro padre
             const { data: reg, error: regErr } = await supabase.from('registros').insert({
                 usuario_id: currentUser.id,
                 total_piezas: totalPiezas,
@@ -353,9 +747,8 @@
                 observacion: obs
             }).select().single();
 
-            if(regErr) { alert("Error al guardar registro principal"); console.error(regErr); return; }
+            if(regErr) { alert("Error al guardar registro principal: " + regErr.message); return; }
 
-            // 2. Insertar items en batch
             const itemsToInsert = dailyItems.map(item => ({
                 registro_id: reg.id,
                 ...item
@@ -363,10 +756,9 @@
 
             const { error: itemsErr } = await supabase.from('registro_items').insert(itemsToInsert);
 
-            if(itemsErr) { alert("Error al guardar detalles"); console.error(itemsErr); return; }
+            if(itemsErr) { alert("Error al guardar detalles: " + itemsErr.message); return; }
 
-            // Éxito
-            alert(`✅ Día guardado exitosamente.\nTotal: ${totalPiezas} piezas (${totalSueteres} suéteres)`);
+            alert(`✅ Día guardado exitosamente.\nTotal: ${totalPiezas} piezas (${totalSueteres.toFixed(2)} suéteres)`);
             dailyItems = [];
             renderRegisterView(document.getElementById('main-content'));
         }
@@ -418,19 +810,16 @@
             `;
             loadDashboardData();
         }
-
-        async function loadDashboardData() {
+async function loadDashboardData() {
             const month = parseInt(document.getElementById('dash-month').value);
             const year = parseInt(document.getElementById('dash-year').value);
             
-            // Construir rango de fechas para el mes seleccionado
             const startDate = `${year}-${String(month).padStart(2,'0')}-01`;
             const lastDay = new Date(year, month, 0).getDate();
             const endDate = `${year}-${String(month).padStart(2,'0')}-${lastDay}`;
 
             document.getElementById('dash-loading').classList.remove('hidden');
 
-            // Obtener registros del periodo
             const { data: registros, error } = await supabase
                 .from('registros')
                 .select('id, total_piezas, total_sueteres')
@@ -438,14 +827,14 @@
                 .lte('fecha', endDate)
                 .eq('usuario_id', currentUser.id);
 
-            if(error) { console.error(error); return; }
+            if(error) { console.error(error); alert("Error cargando dashboard: " + error.message); return; }
+
             const totalPiezas = registros.reduce((acc, r) => acc + r.total_piezas, 0);
             const totalSueteres = registros.reduce((acc, r) => acc + parseFloat(r.total_sueteres), 0);
 
             document.getElementById('stat-piezas').textContent = totalPiezas.toLocaleString();
             document.getElementById('stat-sueteres').textContent = totalSueteres.toLocaleString(undefined, {minimumFractionDigits: 2});
 
-            // Obtener desglose por categoría usando los IDs de los registros encontrados
             if(registros.length > 0) {
                 const regIds = registros.map(r => r.id);
                 const { data: items } = await supabase
@@ -453,7 +842,6 @@
                     .select('categoria, cantidad')
                     .in('registro_id', regIds);
 
-                // Agrupar por categoría
                 const catMap = {};
                 items.forEach(i => {
                     catMap[i.categoria] = (catMap[i.categoria] || 0) + i.cantidad;
@@ -488,7 +876,8 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        data: values,                        backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#6366f1','#14b8a6'],
+                        data: values,
+                        backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#6366f1','#14b8a6'],
                         borderWidth: 0
                     }]
                 },
@@ -501,6 +890,6 @@
                 }
             });
         }
-    </script>
+    </script>     
 </body>
 </html>
